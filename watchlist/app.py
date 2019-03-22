@@ -15,6 +15,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(app.root_path, 'data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False    # Turn off monitoring of model changes
 db = SQLAlchemy(app)    # init extension
+
 @app.cli.command()  # register command
 @click.option('--drop', is_flag=True, help='Creat after drop')
 def initdb(drop):
@@ -54,13 +55,22 @@ class Movie(db.Model):
     title = db.Column(db.String(60))
     year = db.Column(db.String(20))
 
+@app.context_processor      #
+def inject_user():
+    user = User.query.first()
+    return dict(user=user)
+
 @app.route('/') # Similar to the Django view
 def index():
     # return  '<h1>Hello Totoro!</h1><img src="http://helloflask.com/totoro.gif">'
-    user = User.query.first()
+    # user = User.query.first()
     movies = Movie.query.all()
-    return render_template('index.html', name=user.name, movies=movies)
+    return render_template('index.html', movies=movies)
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # user = User.query.first()
+    return render_template('404.html'), 404
 
 
 '''
